@@ -2,39 +2,41 @@ package url
 
 import "testing"
 
-func TestParse(t *testing.T) {
-	const uri = "https://meleu.sh/shellcheck"
-
-	got, err := Parse(uri)
-	if err != nil {
-		t.Fatalf("Parse(%q) err = %q, want <nil>", uri, err)
-	}
-
-	want := &URL{
-		Scheme: "https",
-		Host:   "meleu.sh",
-		Path:   "shellcheck",
-	}
-	if *got != *want {
-		t.Errorf("Parse(%q)\ngot  %#v\nwant %#v", uri, got, want)
-	}
+var parseTests = []struct {
+	name string
+	uri  string
+	want *URL
+}{
+	{
+		name: "full",
+		uri:  "https://meleu.sh/shellcheck",
+		want: &URL{
+			Scheme: "https",
+			Host:   "meleu.sh",
+			Path:   "shellcheck",
+		},
+	}, {
+		name: "without path",
+		uri:  "https://meleu.sh",
+		want: &URL{
+			Scheme: "https",
+			Host:   "meleu.sh",
+			Path:   "",
+		},
+	},
 }
 
-func TestParseWithoutPath(t *testing.T) {
-	const uri = "https://meleu.sh"
+func TestParseTable(t *testing.T) {
+	for _, tt := range parseTests {
+		t.Logf("run: %s", tt.name)
 
-	got, err := Parse(uri)
-	if err != nil {
-		t.Fatalf("Parse (%q) err = %q, want <nil>", uri, err)
-	}
-
-	want := &URL{
-		Scheme: "https",
-		Host:   "meleu.sh",
-		Path:   "",
-	}
-	if *got != *want {
-		t.Errorf("Parse(%q)\ngot  %#v\nwant %#v", uri, got, want)
+		got, err := Parse(tt.uri)
+		if err != nil {
+			t.Fatalf("Parse(%q) err = %q, want <nil>", tt.uri, err)
+		}
+		if *got != *tt.want {
+			t.Errorf("Parse(%q)\ngot  %#v\nwant %#v", tt.uri, got, tt.want)
+		}
 	}
 }
 
