@@ -1,12 +1,21 @@
 package url
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
 
 var parseTests = []struct {
 	name string
 	uri  string
 	want *URL
 }{
+	{
+		name: "opaque URL",
+		uri:  "data:text/plain",
+		want: &URL{Scheme: "data"},
+	},
 	{
 		name: "with data scheme",
 		uri:  "data:text/plain;base64,R28gYnkgRXhhbXBsZQ==",
@@ -87,5 +96,33 @@ func TestURLString(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("\ngot  %q\nwant %q\nfor  %#v", got, tt.want, tt.uri)
 		}
+	}
+}
+
+func BenchmarkURLString(b *testing.B) {
+	u := &URL{
+		Scheme: "https",
+		Host:   "meleu.sh",
+		Path:   "shellcheck",
+	}
+
+	for b.Loop() {
+		_ = u.String()
+	}
+}
+
+func BenchmarkURLStringLong(b *testing.B) {
+	for _, n := range []int{10, 100, 1_000} {
+		u := &URL{
+			Scheme: strings.Repeat("x", n),
+			Host:   strings.Repeat("y", n),
+			Path:   strings.Repeat("z", n),
+		}
+
+		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
+			for b.Loop() {
+				_ = u.String()
+			}
+		})
 	}
 }
